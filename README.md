@@ -50,8 +50,10 @@ npx react-native run-android --variant=debug --deviceId emulator-5554     < to r
 
 
 CODE:
+
 npm install --save react-native-async-storage
 
 npm install --save moment
-
+ 
+npm install --save react-native-chart-kit
 
