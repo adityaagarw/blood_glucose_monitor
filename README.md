@@ -8,6 +8,8 @@ Requirements:
   
   -> Should display a graph with option to change scale using a slider and buttons for day histories (3day/week/month)
   
+  -> On app update data should be retained.
+  
   -> Future: Store it on the cloud, OCR to read value, widget to enter value.
   
 
