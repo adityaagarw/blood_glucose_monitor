@@ -61,3 +61,7 @@ npm install --save react-native-chart-kit
 
 npm install @react-native-async-storage/async-storage
 
+npm install react-native-svg
+
+npm install react-native-svg-transformer --save-dev
+
