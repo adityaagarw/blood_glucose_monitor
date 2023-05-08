@@ -59,3 +59,5 @@ npm install --save moment
  
 npm install --save react-native-chart-kit
 
+npm install @react-native-async-storage/async-storage
+
