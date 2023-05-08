@@ -1,6 +1,7 @@
 An app for monitoring Blood Glucose Levels.
 
 Requirements:
+
   -> Intuitive input for entering value.
   
   -> Should automatically take time and date and should store it on the device.
