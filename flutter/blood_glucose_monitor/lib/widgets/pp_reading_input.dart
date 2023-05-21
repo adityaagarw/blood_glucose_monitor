@@ -1,118 +1,100 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import '../models/pp_reading.dart';
+import '../helpers/database_helper.dart';
+import '../models/glucose_reading.dart';
 
 class PPReadingInput extends StatefulWidget {
-  final Function addReading;
-
-  PPReadingInput(this.addReading);
-
   @override
   _PPReadingInputState createState() => _PPReadingInputState();
 }
 
 class _PPReadingInputState extends State<PPReadingInput> {
-  final _nameFocusNode = FocusNode();
-  final _nameController = TextEditingController();
   final _glucoseController = TextEditingController();
-  DateTime _selectedDate;
+  final _timeController = TextEditingController();
+  final _foodController = TextEditingController();
+  String _selectedType = 'Fasting';
 
-  void _submitData() {
-    if (_glucoseController.text.isEmpty) {
-      return;
-    }
+  void _submitReading() async {
+    final glucoseLevel = int.tryParse(_glucoseController.text);
+    final time =
+        TimeOfDay.fromDateTime(DateTime.now()); // Use current time as TimeOfDay
 
-    final enteredName = _nameController.text;
-    final enteredGlucose = double.parse(_glucoseController.text);
-
-    if (enteredName.isEmpty || _selectedDate == null) {
-      return;
-    }
-
-    widget.addReading(
-      PPReading(
+    if (glucoseLevel != null) {
+      final reading = GlucoseReading(
         id: DateTime.now().toString(),
-        name: enteredName,
-        glucose: enteredGlucose,
-        date: _selectedDate,
-      ),
-    );
+        glucoseLevel: glucoseLevel,
+        date: DateTime.now(),
+        time: time,
+        type: _selectedType,
+        food: _selectedType == 'PP' ? _foodController.text : null,
+      );
 
-    Navigator.of(context).pop();
-  }
+      await DatabaseHelper.instance.insertReading(reading);
 
-  void _presentDatePicker() {
-    showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2019),
-      lastDate: DateTime.now(),
-    ).then((pickedDate) {
-      if (pickedDate == null) {
-        return;
-      }
-      setState(() {
-        _selectedDate = pickedDate;
-      });
-    });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Reading saved successfully'),
+        ),
+      );
+
+      _glucoseController.clear();
+      _timeController.clear();
+      _foodController.clear();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Card(
-        elevation: 5,
-        child: Container(
-          padding: EdgeInsets.only(
-            top: 10,
-            left: 10,
-            right: 10,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 10,
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Enter PP Reading',
+            style: TextStyle(fontSize: 20),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: <Widget>[
-              TextField(
-                decoration: InputDecoration(labelText: 'Food Name'),
-                textInputAction: TextInputAction.next,
-                onSubmitted: (_) {
-                  FocusScope.of(context).requestFocus(_nameFocusNode);
-                },
-                controller: _nameController,
-              ),
-              TextField(
-                decoration: InputDecoration(labelText: 'Glucose'),
-                textInputAction: TextInputAction.next,
-                keyboardType: TextInputType.number,
-                controller: _glucoseController,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      _selectedDate == null
-                          ? 'No Date Chosen'
-                          : 'Picked Date: ${DateFormat.yMd().format(_selectedDate)}',
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: _presentDatePicker,
-                    child: Text(
-                      'Choose Date',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ),
-              ElevatedButton(
-                onPressed: _submitData,
-                child: Text('Add Reading'),
-              ),
-            ],
+          const SizedBox(height: 16.0),
+          TextField(
+            controller: _glucoseController,
+            decoration: const InputDecoration(labelText: 'Glucose Level'),
+            keyboardType: TextInputType.number,
           ),
-        ),
+          const SizedBox(height: 8.0),
+          DropdownButtonFormField<String>(
+            value: _selectedType,
+            onChanged: (value) {
+              setState(() {
+                _selectedType = value!;
+              });
+            },
+            items: ['Fasting', 'PP', 'Pre-dinner', 'Bedtime']
+                .map((type) => DropdownMenuItem(
+                      value: type,
+                      child: Text(type),
+                    ))
+                .toList(),
+            decoration: const InputDecoration(labelText: 'Reading Type'),
+          ),
+          if (_selectedType == 'PP')
+            TextField(
+              controller: _foodController,
+              decoration: const InputDecoration(labelText: 'Food Name'),
+            ),
+          const SizedBox(height: 16.0),
+          ElevatedButton(
+            onPressed: _submitReading,
+            child: const Text('Submit'),
+          ),
+        ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _glucoseController.dispose();
+    _timeController.dispose();
+    _foodController.dispose();
+    super.dispose();
   }
 }

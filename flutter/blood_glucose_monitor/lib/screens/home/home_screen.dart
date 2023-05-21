@@ -2,146 +2,187 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../helpers/database_helper.dart';
 import '../../models/glucose_reading.dart';
-import '../../models/pp_reading.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
+
   @override
-   _HomeScreenState createState() => _HomeScreenState();
+  // ignore: library_private_types_in_public_api
+  _HomeScreenState createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _scaffoldKey = GlobalKey<ScaffoldState>();
+  final _glucoseLevelController = TextEditingController();
+  final _dateController = TextEditingController();
+  final _timeController = TextEditingController();
   String _selectedType = 'Fasting';
-  DateTime _selectedDate = DateTime.now();
-  TimeOfDay _selectedTime = TimeOfDay.now();
-  int _glucoseLevel;
-  String _foodName;
+  String? _selectedFood;
 
-  void _submitForm() {
-    if (!_formKey.currentState.validate()) {
-      return;
-    }
-    _formKey.currentState.save();
-    final newReading = GlucoseReading(
-      glucoseLevel: _glucoseLevel,
-      type: _selectedType,
-      date: _selectedDate,
-      time: _selectedTime,
-      foodName: _selectedType == 'PP' ? _foodName : null,
-    );
-    // TODO: Save newReading to database
-    _showSnackBar('Reading added successfully!');
+  @override
+  void dispose() {
+    _glucoseLevelController.dispose();
+    _dateController.dispose();
+    _timeController.dispose();
+    super.dispose();
   }
 
-  void _showSnackBar(String message) {
-    _scaffoldKey.currentState.showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: Duration(seconds: 2),
-      ),
-    );
-  }
+  void _onSubmit() {
+    if (_formKey.currentState!.validate()) {
+      final glucoseLevel = int.tryParse(_glucoseLevelController.text);
+      final dateFormat = DateFormat('yyyy-MM-dd');
+      final timeFormat = DateFormat('hh:mm a');
+      final date = dateFormat.parse(_dateController.text);
+      final time =
+          TimeOfDay.fromDateTime(timeFormat.parse(_timeController.text));
+      print('Time: $time');
 
-  void _selectDate(BuildContext context) async {
-    final DateTime pickedDate = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(2010),
-      lastDate: DateTime(2050),
-    );
-    if (pickedDate != null && pickedDate != _selectedDate) {
-      setState(() {
-        _selectedDate = pickedDate;
-      });
+      if (glucoseLevel != null) {
+        final reading = GlucoseReading(
+          id: DateTime.now().toString(),
+          date: date,
+          time: time,
+          type: _selectedType,
+          glucoseLevel: glucoseLevel,
+          food: _selectedType == 'PP' ? _selectedFood : null,
+        );
+
+        DatabaseHelper.instance.insertReading(reading);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Reading added successfully!')),
+        );
+      }
     }
   }
 
-  void _selectTime(BuildContext context) async {
-    final TimeOfDay pickedTime = await showTimePicker(
-      context: context,
-      initialTime: _selectedTime,
-    );
-    if (pickedTime != null && pickedTime != _selectedTime) {
-      setState(() {
-        _selectedTime = pickedTime;
-      });
-    }
-  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey,
-      appBar: AppBar(
-        title: Text('Blood Glucose Tracker'),
-      ),
+      appBar: AppBar(title: const Text('Glucose Tracker - Home')),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
+        child: Container(
+          padding: const EdgeInsets.all(16),
           child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                GlucoseInput(
-                  onSaved: (value) {
-                    _glucoseLevel = int.tryParse(value);
+                TextFormField(
+                  decoration: const InputDecoration(labelText: 'Glucose Level'),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Please enter a glucose level';
+                    }
+                    return null;
+                  },
+                  controller: _glucoseLevelController,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  decoration: const InputDecoration(labelText: 'Date'),
+                  readOnly: true,
+                  controller: _dateController,
+                  onTap: () async {
+                    final pickedDate = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime.now(),
+                    );
+                    if (pickedDate != null) {
+                      setState(() {
+                        final dateFormat = DateFormat('yyyy-MM-dd');
+                        _dateController.text = dateFormat.format(pickedDate);
+                        print('Producer Date: ${_dateController.text}');
+                      });
+                    }
+                  },
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Please select a date';
+                    }
+                    return null;
                   },
                 ),
-                SizedBox(height: 16.0),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(
-                      child: GestureDetector(
-                        onTap: () => _selectDate(context),
-                        child: Text(
-                          'Date: ${_selectedDate.year}-${_selectedDate.month}-${_selectedDate.day}',
+                const SizedBox(height: 16),
+                TextFormField(
+                  decoration: const InputDecoration(labelText: 'Time'),
+                  readOnly: true,
+                  controller: _timeController,
+                  onTap: () async {
+                    final pickedTime = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.now(),
+                    );
+                    if (pickedTime != null) {
+                      final formattedTime = DateFormat('hh:mm a').format(
+                        //final formattedTime = DateFormat.jm().format(
+                        DateTime(
+                          DateTime.now().year,
+                          DateTime.now().month,
+                          DateTime.now().day,
+                          pickedTime.hour,
+                          pickedTime.minute,
                         ),
-                      ),
-                    ),
-                    SizedBox(width: 16.0),
-                    Flexible(
-                      child: GestureDetector(
-                        onTap: () => _selectTime(context),
-                        child: Text(
-                          'Time: ${_selectedTime.hour}:${_selectedTime.minute}',
-                        ),
-                      ),
-                    ),
-                  ],
+                      );
+                      setState(() {
+                        _timeController.text = formattedTime;
+                        print('Producer Time: ${_timeController.text}');
+                      });
+                    }
+                  },
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Please select a time';
+                    }
+                    return null;
+                  },
                 ),
-                SizedBox(height: 16.0),
+                const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
+                  decoration: const InputDecoration(labelText: 'Type'),
                   value: _selectedType,
-                  items: ['Fasting', 'PP', 'Pre-dinner', 'Bedtime']
-                      .map((type) => DropdownMenuItem<String>(
+                  items: const ['Fasting', 'PP', 'Pre-dinner', 'Bedtime']
+                      .map((type) => DropdownMenuItem(
                             value: type,
                             child: Text(type),
                           ))
                       .toList(),
                   onChanged: (value) {
                     setState(() {
-                      _selectedType = value;
+                      _selectedType = value!;
                     });
                   },
-                  decoration: InputDecoration(
-                    labelText: 'Type of Reading',
-                  ),
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Please select a type';
+                    }
+                    return null;
+                  },
                 ),
-                if (_selectedType == 'PP')
+                if (_selectedType == 'PP') ...[
+                  const SizedBox(height: 16),
                   TextFormField(
-                    decoration: InputDecoration(
-                      labelText: 'Food Name',
-                    ),
-                    onSaved: (value) {
-                      _foodName = value.trim();
+                    decoration: const InputDecoration(labelText: 'Food'),
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Please enter a food';
+                      }
+                      return null;
+                    },
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedFood = value;
+                      });
                     },
                   ),
-                SizedBox(height: 32.0),
-                RaisedButton(
-                  onPressed: _submitForm,
-                  child: Text('Submit'),
+                ],
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _onSubmit,
+                  child: const Text('Submit'),
                 ),
               ],
             ),

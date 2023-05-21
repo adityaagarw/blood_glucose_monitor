@@ -1,42 +1,45 @@
 import 'package:flutter/material.dart';
+
 class GlucoseReading {
-  final int id;
+  final String id;
   final DateTime date;
   final TimeOfDay time;
   final String type;
   final int glucoseLevel;
-  final String food;
+  final String? food;
 
   GlucoseReading({
-    this.id,
-    this.date,
-    this.time,
-    this.type,
-    this.glucoseLevel,
+    required this.id,
+    required this.date,
+    required this.time,
+    required this.type,
+    required this.glucoseLevel,
     this.food,
   });
+
+  factory GlucoseReading.fromMap(Map<String, dynamic> map) {
+    return GlucoseReading(
+      id: map['id'],
+      date: DateTime.parse(map['date']),
+      time: TimeOfDay(
+        hour: int.parse(map['hour']),
+        minute: int.parse(map['minute']),
+      ),
+      type: map['type'],
+      glucoseLevel: map['glucoseLevel'],
+      food: map['food'],
+    );
+  }
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'date': date.toIso8601String(),
-      'time': '${time.hour}:${time.minute}',
+      'hour': time.hour.toString(),
+      'minute': time.minute.toString(),
       'type': type,
-      'glucose_level': glucoseLevel,
+      'glucoseLevel': glucoseLevel,
+      'food': food,
     };
-  }
-
-  factory GlucoseReading.fromMap(Map<String, dynamic> map, String food) {
-    final date = DateTime.tryParse(map['date']);
-    final timeParts = map['time'].split(':');
-    final time = TimeOfDay(hour: int.parse(timeParts[0]), minute: int.parse(timeParts[1]));
-    return GlucoseReading(
-      id: map['id'],
-      date: date,
-      time: time,
-      type: map['type'],
-      glucoseLevel: map['glucose_level'],
-      food: food,
-    );
   }
 }

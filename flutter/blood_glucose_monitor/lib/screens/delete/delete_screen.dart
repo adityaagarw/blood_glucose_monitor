@@ -1,88 +1,97 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../../helpers/database_helper.dart';
-import '../../models/glucose_reading.dart';
 
 class DeleteScreen extends StatefulWidget {
-  final List<GlucoseReading> glucoseReadings;
-
-  DeleteScreen({@required this.glucoseReadings});
+  const DeleteScreen({Key? key}) : super(key: key);
 
   @override
   _DeleteScreenState createState() => _DeleteScreenState();
 }
 
 class _DeleteScreenState extends State<DeleteScreen> {
-  DateTime _startDate;
-  DateTime _endDate;
-  bool _showRangeForm = false;
+  DateTime? _startDate;
+  DateTime? _endDate;
 
-  void _deleteReadings() {
-    if (_showRangeForm) {
-      if (_startDate != null && _endDate != null) {
-        widget.glucoseReadings
-            .removeWhere((reading) => reading.dateTime.isAfter(_startDate) && reading.dateTime.isBefore(_endDate));
-      }
-    } else {
-      widget.glucoseReadings.clear();
+  Future<void> _deleteReadingsByDateRange() async {
+    if (_startDate != null && _endDate != null) {
+      final deletedCount = await DatabaseHelper.instance
+          .deleteReadingsByDateRange(_startDate!, _endDate!);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$deletedCount reading(s) deleted successfully!'),
+        ),
+      );
     }
-    Navigator.pop(context);
-  }
-
-  void _toggleRangeForm() {
-    setState(() {
-      _showRangeForm = !_showRangeForm;
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Blood Glucose Tracker'),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              RaisedButton(
-                onPressed: _toggleRangeForm,
-                child: Text(_showRangeForm ? 'Clear Range' : 'Delete Range'),
-              ),
-              SizedBox(height: 16.0),
-              if (_showRangeForm)
-                DeleteForm(
-                  onStartDateChanged: (value) {
-                    setState(() {
-                      _startDate = value;
-                    });
-                  },
-                  onEndDateChanged: (value) {
-                    setState(() {
-                      _endDate = value;
-                    });
-                  },
-                  onDelete: _deleteReadings,
-                )
-              else
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'Are you sure you want to delete all readings?',
-                      style: TextStyle(fontSize: 20.0),
+      appBar: AppBar(title: const Text('Glucose Tracker - Delete')),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Delete Readings By Date Range',
+                style: TextStyle(fontSize: 20)),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime.now(),
+                      );
+                      if (pickedDate != null) {
+                        setState(() {
+                          _startDate = pickedDate;
+                        });
+                      }
+                    },
+                    child: Text(
+                      _startDate != null
+                          ? 'Start Date: ${_startDate!.toString()}'
+                          : 'Select Start Date',
                     ),
-                    SizedBox(height: 16.0),
-                    RaisedButton(
-                      onPressed: _deleteReadings,
-                      child: Text('Delete All Readings'),
-                    ),
-                  ],
+                  ),
                 ),
-            ],
-          ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime.now(),
+                      );
+                      if (pickedDate != null) {
+                        setState(() {
+                          _endDate = pickedDate;
+                        });
+                      }
+                    },
+                    child: Text(
+                      _endDate != null
+                          ? 'End Date: ${_endDate!.toString()}'
+                          : 'Select End Date',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _deleteReadingsByDateRange,
+              child: const Text('Delete Readings'),
+            ),
+          ],
         ),
       ),
     );
