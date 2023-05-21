@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import '../../models/glucose_reading.dart';
+import '../../models/pp_reading.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -85,12 +86,14 @@ class DatabaseHelper {
     await db.delete('glucose_readings', where: 'id = ?', whereArgs: [id]);
   }
 
-  Future<void> deleteReadingsByDateRange(DateTime startDate, DateTime endDate) async {
+  Future<void> deleteReadingsByDateRange(
+      DateTime startDate, DateTime endDate) async {
     final db = await database;
     await db.transaction((txn) async {
       await txn.delete(
         'pp_readings',
-        where: 'reading_id IN (SELECT id FROM glucose_readings WHERE date BETWEEN ? AND ?)',
+        where:
+            'reading_id IN (SELECT id FROM glucose_readings WHERE date BETWEEN ? AND ?)',
         whereArgs: [startDate.toIso8601String(), endDate.toIso8601String()],
       );
       await txn.delete(
