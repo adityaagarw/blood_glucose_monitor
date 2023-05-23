@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
-
 import '../../models/glucose_reading.dart';
 import '../../widgets/glucose_chart.dart';
 
@@ -28,7 +26,7 @@ class _GraphScreenState extends State<GraphScreen> {
           _buildTabs(),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(16.0),
               child: _buildChart(),
             ),
           ),
@@ -52,7 +50,7 @@ class _GraphScreenState extends State<GraphScreen> {
             });
           },
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             decoration: BoxDecoration(
               border: Border.all(color: color),
               borderRadius: BorderRadius.circular(20),

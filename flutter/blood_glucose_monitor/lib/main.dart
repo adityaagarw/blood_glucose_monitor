@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'screens/home/home_screen.dart';
 import 'screens/graph/graph_screen.dart';
 import 'screens/table/table_screen.dart';

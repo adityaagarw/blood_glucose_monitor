@@ -27,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  void _onSubmit() {
+  void _onSubmit() async {
     if (_formKey.currentState!.validate()) {
       final glucoseLevel = int.tryParse(_glucoseLevelController.text);
       final dateFormat = DateFormat('yyyy-MM-dd');
@@ -47,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
           food: _selectedType == 'PP' ? _selectedFood : null,
         );
 
-        DatabaseHelper.instance.insertReading(reading);
+        await DatabaseHelper.instance.insertReading(reading);
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Reading added successfully!')),
@@ -59,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Glucose Tracker - Home')),
+      appBar: AppBar(title: const Text('Blood Glucose Tracker - Home')),
       body: SingleChildScrollView(
         child: Container(
           padding: const EdgeInsets.all(16),
@@ -118,7 +118,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                     if (pickedTime != null) {
                       final formattedTime = DateFormat('hh:mm a').format(
-                        //final formattedTime = DateFormat.jm().format(
                         DateTime(
                           DateTime.now().year,
                           DateTime.now().month,
