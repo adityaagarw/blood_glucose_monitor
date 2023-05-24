@@ -59,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Blood Glucose Tracker - Home')),
+      appBar: AppBar(title: const Text('Home')),
       body: SingleChildScrollView(
         child: Container(
           padding: const EdgeInsets.all(16),
@@ -180,6 +180,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
                 const SizedBox(height: 16),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    primary: Color.fromARGB(255, 14, 15, 15),
+                  ),
                   onPressed: _onSubmit,
                   child: const Text('Submit'),
                 ),

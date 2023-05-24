@@ -12,13 +12,31 @@ void main() {
 class MyApp extends StatelessWidget {
   final List<GlucoseReading> readings = []; // Replace with your actual data
 
+  final ThemeData myTheme = ThemeData.dark().copyWith(
+    // Customize the dark theme colors
+    primaryColor: Colors.blueGrey[900],
+    //accentColor: Colors.lightBlueAccent,
+    scaffoldBackgroundColor: Colors.grey[900],
+    backgroundColor: Colors.grey[800],
+    cardColor: Colors.grey[800],
+    // Customize the dark theme typography
+    textTheme: TextTheme(
+      headline6: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      ),
+      // Customize other text styles as per your design requirements
+    ),
+  );
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Blood Glucose Tracker',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: myTheme,
+      //theme: ThemeData(
+      //  primarySwatch: Colors.lime,
+      //),
       home: DefaultTabController(
         length: 4,
         child: Scaffold(
@@ -36,7 +54,7 @@ class MyApp extends StatelessWidget {
           body: TabBarView(
             children: [
               HomeScreen(),
-              GraphScreen(readings: readings),
+              GraphScreen(),
               TableScreen(),
               DeleteScreen(),
             ],

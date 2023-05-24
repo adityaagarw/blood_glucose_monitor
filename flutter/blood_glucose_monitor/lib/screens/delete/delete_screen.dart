@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../helpers/database_helper.dart';
 
 class DeleteScreen extends StatefulWidget {
@@ -29,7 +30,7 @@ class _DeleteScreenState extends State<DeleteScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Glucose Tracker - Delete')),
+      appBar: AppBar(title: const Text('Delete Readings')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -42,6 +43,9 @@ class _DeleteScreenState extends State<DeleteScreen> {
               children: [
                 Expanded(
                   child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      primary: Color.fromARGB(255, 14, 15, 15),
+                    ),
                     onPressed: () async {
                       final pickedDate = await showDatePicker(
                         context: context,
@@ -57,7 +61,7 @@ class _DeleteScreenState extends State<DeleteScreen> {
                     },
                     child: Text(
                       _startDate != null
-                          ? 'Start Date: ${_startDate!.toString()}'
+                          ? 'Start Date: ${DateFormat("yyyy-MM-dd").format(_startDate!)}'
                           : 'Select Start Date',
                     ),
                   ),
@@ -65,6 +69,9 @@ class _DeleteScreenState extends State<DeleteScreen> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      primary: Color.fromARGB(255, 14, 15, 15),
+                    ),
                     onPressed: () async {
                       final pickedDate = await showDatePicker(
                         context: context,
@@ -80,7 +87,7 @@ class _DeleteScreenState extends State<DeleteScreen> {
                     },
                     child: Text(
                       _endDate != null
-                          ? 'End Date: ${_endDate!.toString()}'
+                          ? 'End Date: ${DateFormat("yyyy-MM-dd").format(_endDate!)}'
                           : 'Select End Date',
                     ),
                   ),
@@ -88,10 +95,14 @@ class _DeleteScreenState extends State<DeleteScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
+            Center(
+                child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                primary: Color.fromARGB(255, 14, 15, 15),
+              ),
               onPressed: _deleteReadingsByDateRange,
               child: const Text('Delete Readings'),
-            ),
+            )),
           ],
         ),
       ),
